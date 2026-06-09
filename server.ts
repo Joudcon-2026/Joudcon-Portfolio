@@ -13,9 +13,59 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Ensure uploads directory exists and is exposed statically before any routing matches
+  const uploadsDir = path.join(process.cwd(), "uploads");
+  await fs.mkdir(uploadsDir, { recursive: true });
+  app.use("/uploads", express.static(uploadsDir));
+
   // Max payload size for handling large high-res image scans and base64 storage
   app.use(express.json({ limit: "150mb" }));
   app.use(express.urlencoded({ limit: "150mb", extended: true }));
+
+  // API Route to save uploaded images (from Base64 payload) to disk under /uploads folder
+  app.post("/api/upload", async (req, res) => {
+    try {
+      const { image, filename } = req.body;
+      if (!image) {
+        return res.status(400).json({ error: "Missing image payload." });
+      }
+
+      // Parse mime type and data from base64 string
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      let extension = "png";
+      let base64Data = image;
+
+      if (matches && matches.length === 3) {
+        const mimeType = matches[1];
+        base64Data = matches[2];
+        const parts = mimeType.split("/");
+        if (parts.length === 2) {
+          extension = parts[1];
+          // Normalise extension if it's jpeg
+          if (extension === "jpeg") extension = "jpg";
+          else if (extension.includes("+")) extension = extension.split("+")[0];
+        }
+      }
+
+      // Generate a unique safe filename
+      const safeBasename = (filename || "upload")
+        .replace(/[^a-z0-9.]/gi, "_")
+        .replace(/\.[^/.]+$/, ""); // strip existing extension
+      
+      const uniqueFilename = `${Date.now()}-${safeBasename}.${extension}`;
+      const targetFilePath = path.join(uploadsDir, uniqueFilename);
+
+      // Write the file to the uploads directory
+      const buffer = Buffer.from(base64Data, "base64");
+      await fs.writeFile(targetFilePath, buffer);
+
+      const fileUrl = `/uploads/${uniqueFilename}`;
+      res.json({ success: true, url: fileUrl });
+    } catch (error: any) {
+      console.error("Failed to save uploaded image:", error);
+      res.status(500).json({ error: "Failed to save uploaded file on server." });
+    }
+  });
 
   // API Route to load backend database
   app.get("/api/database", async (req, res) => {

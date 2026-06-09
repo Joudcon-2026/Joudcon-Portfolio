@@ -80,6 +80,7 @@ export default function AdminPanel({
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [batchStatus, setBatchStatus] = useState('');
   const [hasStartedAutoProcess, setHasStartedAutoProcess] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const singleFileInputRef = useRef<HTMLInputElement>(null);
   const bulkFileInputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +201,29 @@ export default function AdminPanel({
     });
   };
 
+  const uploadImageToServer = async (base64Data: string, originalFileName: string): Promise<string> => {
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          image: base64Data,
+          filename: originalFileName
+        })
+      });
+      if (!res.ok) {
+        throw new Error("Local server upload failed");
+      }
+      const data = await res.json();
+      return data.url;
+    } catch (err) {
+      console.error("Server upload failed, using raw base64 as fallback", err);
+      return base64Data;
+    }
+  };
+
   // Trigger Gemini AI Image Recognition
   const triggerAIScan = async (base64: string) => {
     setIsScanning(true);
@@ -253,21 +277,35 @@ export default function AdminPanel({
     }
   };
 
-  const handleCreateAlbumOnTheFly = () => {
+  const handleCreateAlbumOnTheFly = async () => {
     if (!suggestedAlbumName) return;
-    const newAlbum: Album = {
-      id: `album-${Date.now()}`,
-      title: suggestedAlbumName,
-      description: `Premium event setup automatically catalogued via Joudcon AI scanning.`,
-      coverUrl: singleFileBase64 || 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-      tag: 'AI Organized',
-      date: new Date().toISOString().split('T')[0]
-    };
+    setIsUploading(true);
+    setScanStatus('Storing project album cover to server...');
+    try {
+      let finalCover = 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80';
+      if (singleFileBase64) {
+        finalCover = await uploadImageToServer(singleFileBase64, 'project_cover.png');
+      }
 
-    onDataChange([newAlbum, ...albums], photos);
-    setSingleAlbumId(newAlbum.id);
-    setSuggestedAlbumName('');
-    showSuccess(`Created project album "${newAlbum.title}" on-the-fly.`);
+      const newAlbum: Album = {
+        id: `album-${Date.now()}`,
+        title: suggestedAlbumName,
+        description: `Premium event setup automatically catalogued via Joudcon AI scanning.`,
+        coverUrl: finalCover,
+        tag: 'AI Organized',
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      onDataChange([newAlbum, ...albums], photos);
+      setSingleAlbumId(newAlbum.id);
+      setSuggestedAlbumName('');
+      showSuccess(`Created project album "${newAlbum.title}" on-the-fly.`);
+    } catch (err) {
+      setErrorMsg('Failed to build project album on-the-fly.');
+    } finally {
+      setIsUploading(false);
+      setScanStatus('');
+    }
   };
 
   // Safe background queue watermarker
@@ -395,32 +433,43 @@ export default function AdminPanel({
   };
 
   // Form Submissions
-  const handleSingleUploadSubmit = (e: React.FormEvent) => {
+  const handleSingleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!singleFileBase64) {
       setErrorMsg('Please select or drag an image first.');
       return;
     }
 
-    const newPhoto: PortfolioPhoto = {
-      id: `photo-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      url: singleFileBase64,
-      title: singleTitle.trim() || `Asset - ${singleCategory}`,
-      category: singleCategory,
-      albumId: singleAlbumId || null,
-      createdAt: new Date().toISOString(),
-      isWatermarked: true
-    };
+    setIsUploading(true);
+    setScanStatus('Uploading and saving watermarked image to server...');
+    try {
+      const serverUrl = await uploadImageToServer(singleFileBase64, singleFileName || 'image.jpg');
 
-    onDataChange(albums, [newPhoto, ...photos]);
-    
-    // reset form
-    setSingleTitle('');
-    setSingleFileBase64(null);
-    setSingleFileName('');
-    if (singleFileInputRef.current) singleFileInputRef.current.value = '';
-    
-    showSuccess('Successfully published single image.');
+      const newPhoto: PortfolioPhoto = {
+        id: `photo-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        url: serverUrl,
+        title: singleTitle.trim() || `Asset - ${singleCategory}`,
+        category: singleCategory,
+        albumId: singleAlbumId || null,
+        createdAt: new Date().toISOString(),
+        isWatermarked: true
+      };
+
+      onDataChange(albums, [newPhoto, ...photos]);
+      
+      // reset form
+      setSingleTitle('');
+      setSingleFileBase64(null);
+      setSingleFileName('');
+      if (singleFileInputRef.current) singleFileInputRef.current.value = '';
+      
+      showSuccess('Successfully published single image to backend server.');
+    } catch (err) {
+      setErrorMsg('Failed to upload and save image.');
+    } finally {
+      setIsUploading(false);
+      setScanStatus('');
+    }
   };
 
   const handleBulkUploadSubmit = async (e: React.FormEvent) => {
@@ -430,26 +479,43 @@ export default function AdminPanel({
       return;
     }
 
-    const newPhotos: PortfolioPhoto[] = bulkFiles.map((file, idx) => ({
-      id: `photo-bulk-${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`,
-      url: file.base64,
-      title: `${bulkNaming.trim() || 'Event Archive'} - ${String(idx + 1).padStart(2, '0')}`,
-      category: bulkCategory,
-      albumId: bulkAlbumId || null,
-      createdAt: new Date().toISOString(),
-      isWatermarked: true
-    }));
+    setIsUploading(true);
+    setScanStatus('Preparing files for server saving...');
 
-    onDataChange(albums, [...newPhotos, ...photos]);
-    
-    // reset
-    setBulkFiles([]);
-    if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
-    
-    showSuccess(`Successfully bulk-uploaded ${newPhotos.length} images.`);
+    try {
+      const uploadedPhotos: PortfolioPhoto[] = [];
+      for (let i = 0; i < bulkFiles.length; i++) {
+        setScanStatus(`Uploading ${i + 1}/${bulkFiles.length} files...`);
+        const file = bulkFiles[i];
+        const serverUrl = await uploadImageToServer(file.base64, file.name);
+
+        uploadedPhotos.push({
+          id: `photo-bulk-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`,
+          url: serverUrl,
+          title: `${bulkNaming.trim() || 'Event Archive'} - ${String(i + 1).padStart(2, '0')}`,
+          category: bulkCategory,
+          albumId: bulkAlbumId || null,
+          createdAt: new Date().toISOString(),
+          isWatermarked: true
+        });
+      }
+
+      onDataChange(albums, [...uploadedPhotos, ...photos]);
+      
+      // reset
+      setBulkFiles([]);
+      if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+      
+      showSuccess(`Successfully bulk-uploaded and saved ${uploadedPhotos.length} images.`);
+    } catch (err) {
+      setErrorMsg('Failed uploading bulk files.');
+    } finally {
+      setIsUploading(false);
+      setScanStatus('');
+    }
   };
 
-  const handleCreateAlbumSubmit = (e: React.FormEvent) => {
+  const handleCreateAlbumSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAlbumTitle.trim()) {
       setErrorMsg('Album title is required.');
@@ -463,25 +529,40 @@ export default function AdminPanel({
     ];
     const defaultCover = defaultCovers[Math.floor(Math.random() * defaultCovers.length)];
 
-    const newAlbum: Album = {
-      id: `album-${Date.now()}`,
-      title: newAlbumTitle.trim(),
-      description: newAlbumDesc.trim() || 'No description provided.',
-      coverUrl: newAlbumCoverBase64 || defaultCover,
-      tag: newAlbumTag.trim() || 'Corporate',
-      date: newAlbumDate || new Date().toISOString().split('T')[0]
-    };
+    setIsUploading(true);
+    setScanStatus('Uploading custom cover image to server...');
 
-    onDataChange([newAlbum, ...albums], photos);
+    try {
+      let coverUrl = defaultCover;
+      if (newAlbumCoverBase64) {
+        coverUrl = await uploadImageToServer(newAlbumCoverBase64, 'album_cover.jpg');
+      }
 
-    // reset Form
-    setNewAlbumTitle('');
-    setNewAlbumDesc('');
-    setNewAlbumCoverBase64(null);
-    if (albumFileInputRef.current) albumFileInputRef.current.value = '';
-    
-    showSuccess(`Created Album "${newAlbum.title}" successfully.`);
-    setActiveTab('single'); // switch tab so they can assign images to it
+      const newAlbum: Album = {
+        id: `album-${Date.now()}`,
+        title: newAlbumTitle.trim(),
+        description: newAlbumDesc.trim() || 'No description provided.',
+        coverUrl: coverUrl,
+        tag: newAlbumTag.trim() || 'Corporate',
+        date: newAlbumDate || new Date().toISOString().split('T')[0]
+      };
+
+      onDataChange([newAlbum, ...albums], photos);
+
+      // reset Form
+      setNewAlbumTitle('');
+      setNewAlbumDesc('');
+      setNewAlbumCoverBase64(null);
+      if (albumFileInputRef.current) albumFileInputRef.current.value = '';
+      
+      showSuccess(`Created Album "${newAlbum.title}" successfully.`);
+      setActiveTab('single'); // switch tab so they can assign images to it
+    } catch (err) {
+      setErrorMsg('Failed metadata configuration.');
+    } finally {
+      setIsUploading(false);
+      setScanStatus('');
+    }
   };
 
   // Queue item deletability
@@ -541,24 +622,38 @@ export default function AdminPanel({
     setEditingAlbumId(null);
   };
 
-  const savePhotoEdit = (photoId: string) => {
-    const updatedPhotos = photos.map((ph) => {
-      if (ph.id === photoId) {
-        return {
-          ...ph,
-          title: editPhotoTitle.trim() || ph.title,
-          category: editPhotoCategory,
-          albumId: editPhotoAlbumId || null,
-          url: editPhotoCoverBase64 || ph.url,
-          isWatermarked: editPhotoCoverBase64 ? true : ph.isWatermarked
-        };
+  const savePhotoEdit = async (photoId: string) => {
+    setIsUploading(true);
+    setScanStatus('Saving photo replacement image to server...');
+    try {
+      let finalUrl = '';
+      if (editPhotoCoverBase64) {
+        finalUrl = await uploadImageToServer(editPhotoCoverBase64, 'replaced_image.jpg');
       }
-      return ph;
-    });
-    onDataChange(albums, updatedPhotos);
-    setEditingPhotoId(null);
-    setEditPhotoCoverBase64(null);
-    showSuccess('Photo details and image updated.');
+
+      const updatedPhotos = photos.map((ph) => {
+        if (ph.id === photoId) {
+          return {
+            ...ph,
+            title: editPhotoTitle.trim() || ph.title,
+            category: editPhotoCategory,
+            albumId: editPhotoAlbumId || null,
+            url: finalUrl || ph.url,
+            isWatermarked: editPhotoCoverBase64 ? true : ph.isWatermarked
+          };
+        }
+        return ph;
+      });
+      onDataChange(albums, updatedPhotos);
+      setEditingPhotoId(null);
+      setEditPhotoCoverBase64(null);
+      showSuccess('Photo details and replacement image successfully saved to server.');
+    } catch (err) {
+      setErrorMsg('Failed to update photo.');
+    } finally {
+      setIsUploading(false);
+      setScanStatus('');
+    }
   };
 
   const showSuccess = (msg: string) => {
