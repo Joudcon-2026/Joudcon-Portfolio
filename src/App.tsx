@@ -69,11 +69,34 @@ export default function App() {
   // Search input query
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 1. Initial State Load with IndexedDB high-capacity storage and legacy localStorage migration
+  // 1. Initial State Load with Backend Database, IndexedDB high-capacity storage, and legacy localStorage migration
   useEffect(() => {
     async function loadPortfolioData() {
+      let loadedAlbums = INITIAL_ALBUMS;
+      let loadedPhotos = INITIAL_PHOTOS;
+      let hasLoadedFromBackend = false;
+
       try {
-        // Look for values in high-capacity IndexedDB
+        // Try to fetch from the server-side backend database
+        const backendRes = await fetch("/api/database");
+        if (backendRes.ok) {
+          const backendData = await backendRes.json();
+          if (backendData && Array.isArray(backendData.albums) && Array.isArray(backendData.photos)) {
+            // Only use backend data if we have real saved items, otherwise seed INITIALS to server
+            if (backendData.albums.length > 0 || backendData.photos.length > 0) {
+              loadedAlbums = backendData.albums;
+              loadedPhotos = backendData.photos;
+              hasLoadedFromBackend = true;
+              console.log("[Backend Database] Successfully synchronized state with server storage.");
+            }
+          }
+        }
+      } catch (backendError) {
+        console.warn("[Backend Database] Connection failed, falling back to local cache:", backendError);
+      }
+
+      try {
+        // Look for values in high-capacity IndexedDB as a local cache/fallback
         let storedAlbums = await getItem<Album[]>('joudcon_albums_db');
         let storedPhotos = await getItem<PortfolioPhoto[]>('joudcon_photos_db');
 
@@ -105,14 +128,32 @@ export default function App() {
           localStorage.removeItem('joudcon_photos_unwatermarked'); // clean up any old keys
         }
 
-        const loadedAlbums = storedAlbums || INITIAL_ALBUMS;
-        const loadedPhotos = storedPhotos || INITIAL_PHOTOS;
+        // Keep local cache up to date if we loaded newer database from backend
+        if (hasLoadedFromBackend) {
+          await setItem('joudcon_albums_db', loadedAlbums);
+          await setItem('joudcon_photos_db', loadedPhotos);
+        } else {
+          // If backend was empty/absent but we have cached IndexedDB, use the cache
+          if (storedAlbums) loadedAlbums = storedAlbums;
+          if (storedPhotos) loadedPhotos = storedPhotos;
 
-        // If newly loaded app with no data yet, seed initial values into IndexedDB to support complete features offline
-        if (!storedAlbums) {
+          // Push local state to server to keep back-end matching in-sync
+          try {
+            await fetch("/api/database", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ albums: loadedAlbums, photos: loadedPhotos }),
+            });
+          } catch (syncErr) {
+            console.warn("Could not seed local data to backend:", syncErr);
+          }
+        }
+
+        // If newly loaded app with no data yet, seed initial values into IndexedDB
+        if (!storedAlbums && !hasLoadedFromBackend) {
           await setItem('joudcon_albums_db', INITIAL_ALBUMS);
         }
-        if (!storedPhotos) {
+        if (!storedPhotos && !hasLoadedFromBackend) {
           await setItem('joudcon_photos_db', INITIAL_PHOTOS);
         }
 
@@ -121,9 +162,9 @@ export default function App() {
         setTotalClientPhotos(loadedPhotos.length);
       } catch (error) {
         console.error('IndexedDB bootstrap load failed, falling back to preset catalogs:', error);
-        setAlbums(INITIAL_ALBUMS);
-        setPhotos(INITIAL_PHOTOS);
-        setTotalClientPhotos(INITIAL_PHOTOS.length);
+        setAlbums(loadedAlbums);
+        setPhotos(loadedPhotos);
+        setTotalClientPhotos(loadedPhotos.length);
       }
     }
 
@@ -141,7 +182,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Update IndexedDB when albums/photos state is edited inside Admin Panel
+  // Update IndexedDB & server-side database when albums/photos state is edited inside Admin Panel
   const handleDataChange = async (newAlbums: Album[], newPhotos: PortfolioPhoto[]) => {
     setAlbums(newAlbums);
     setPhotos(newPhotos);
@@ -151,6 +192,17 @@ export default function App() {
       await setItem('joudcon_photos_db', newPhotos);
     } catch (err) {
       console.error('Storage update failure:', err);
+    }
+
+    try {
+      await fetch("/api/database", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ albums: newAlbums, photos: newPhotos }),
+      });
+      console.log("[Backend Database] Changes successfully persisted to backend server.");
+    } catch (serverErr) {
+      console.error("[Backend Database] Failed to write changes to server:", serverErr);
     }
   };
 

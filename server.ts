@@ -1,18 +1,55 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import fs from "fs/promises";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
+const DB_FILE_PATH = path.join(process.cwd(), "database.json");
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Max payload size for handling large high-res image scans
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Max payload size for handling large high-res image scans and base64 storage
+  app.use(express.json({ limit: "150mb" }));
+  app.use(express.urlencoded({ limit: "150mb", extended: true }));
+
+  // API Route to load backend database
+  app.get("/api/database", async (req, res) => {
+    try {
+      let data;
+      try {
+        const fileContent = await fs.readFile(DB_FILE_PATH, "utf-8");
+        data = JSON.parse(fileContent);
+      } catch (err: any) {
+        console.warn("Could not read database.json, generating default fallback structure:", err.message);
+        data = { albums: [], photos: [] };
+      }
+      res.json(data);
+    } catch (error: any) {
+      console.error("Failed to load backend database:", error);
+      res.status(500).json({ error: "Failed to load database from server." });
+    }
+  });
+
+  // API Route to save/update backend database
+  app.post("/api/database", async (req, res) => {
+    try {
+      const { albums, photos } = req.body;
+      if (!albums || !photos) {
+        return res.status(400).json({ error: "Missing albums or photos payload." });
+      }
+
+      await fs.writeFile(DB_FILE_PATH, JSON.stringify({ albums, photos }, null, 2), "utf-8");
+      res.json({ success: true, message: "Database successfully synced to backend storage." });
+    } catch (error: any) {
+      console.error("Failed to save backend database:", error);
+      res.status(500).json({ error: "Failed to persist database on server." });
+    }
+  });
 
   // API Route for AI Image Scans using Gemini 3.5 Flash
   app.post("/api/scan-image", async (req, res) => {
