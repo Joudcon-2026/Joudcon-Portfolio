@@ -1,0 +1,270 @@
+import { Album, PortfolioPhoto } from './types';
+
+export const INITIAL_ALBUMS: Album[] = [
+  {
+    id: 'gala-2026',
+    title: 'Annual Corporate Gala 2026',
+    description: 'An expansive luxury evening corporate event featuring custom stages, immersive backdrops, and state-of-the-art lighting AV setups.',
+    coverUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Corporate Gala',
+    date: '2026-03-15'
+  },
+  {
+    id: 'expo-2025',
+    title: 'Middle East Tech Summit & Expo',
+    description: 'A massive multi-booth exhibition design and structural delivery complete with registration desks, AV projections, and custom 3D signs.',
+    coverUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Tech Exhibition',
+    date: '2025-11-08'
+  },
+  {
+    id: 'launch-sabic',
+    title: 'SABIC Brand Launch Event',
+    description: 'Immersive branding and printing production, 3D logos, and vehicle branding for an elegant corporate activation.',
+    coverUrl: 'https://images.unsplash.com/photo-1504270997636-07ddfbd48945?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Brand Activation',
+    date: '2026-01-20'
+  },
+  {
+    id: 'giga-tent',
+    title: 'Riyadh Pavilion Experience',
+    description: 'High-end caterings, premium tents rented and styled, elegant furniture setups, and luxury guest lounges.',
+    coverUrl: 'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Luxury Catering & Tent',
+    date: '2026-02-14'
+  },
+  {
+    id: 'edu-zone-kids',
+    title: 'Children Enrichment Carnival',
+    description: 'Customized kids interactive zones, creative backdrops, active games and safe playground assets.',
+    coverUrl: 'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?auto=format&fit=crop&w=1200&q=80',
+    tag: 'Kids Carnival',
+    date: '2025-08-22'
+  }
+];
+
+export const INITIAL_PHOTOS: PortfolioPhoto[] = [
+  // Stage Category
+  {
+    id: 'stage-1',
+    url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+    title: 'Main Curved Stage Setup',
+    category: 'Stage',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T12:00:00Z'
+  },
+  {
+    id: 'stage-2',
+    url: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=800&q=80',
+    title: 'VIP Guest Stage Projections',
+    category: 'Stage',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T12:10:00Z'
+  },
+
+  // 3D Logo Category
+  {
+    id: 'logo-1',
+    url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
+    title: 'Polished Acrylic 3D Backdrop Logo',
+    category: '3D Logo',
+    albumId: 'launch-sabic',
+    createdAt: '2026-01-20T11:00:00Z'
+  },
+  {
+    id: 'logo-2',
+    url: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=800&q=80',
+    title: 'Illuminated Acrylic Logo Stands',
+    category: '3D Logo',
+    albumId: 'expo-2025',
+    createdAt: '2025-11-08T10:00:00Z'
+  },
+
+  // Flags Category
+  {
+    id: 'flag-1',
+    url: 'https://images.unsplash.com/photo-1531266752426-aad472b7bbf4?auto=format&fit=crop&w=800&q=80',
+    title: 'Outdoor Ceremony Branding Flags',
+    category: 'Flags',
+    albumId: 'launch-sabic',
+    createdAt: '2026-01-20T11:30:00Z'
+  },
+
+  // Registration Desk Category
+  {
+    id: 'reg-desk-1',
+    url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+    title: 'Dual-Lane Reception Desk',
+    category: 'Registration Desk',
+    albumId: 'expo-2025',
+    createdAt: '2025-11-08T09:00:00Z'
+  },
+
+  // AV Systems Category
+  {
+    id: 'av-1',
+    url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80',
+    title: 'Ultra Definition Mixer Deck',
+    category: 'AV Systems',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T14:30:00Z'
+  },
+  {
+    id: 'av-2',
+    url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+    title: 'Symphony Line Array Speaker Riggings',
+    category: 'AV Systems',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T15:00:00Z'
+  },
+
+  // Photo Booth Category
+  {
+    id: 'booth-1',
+    url: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=800&q=80',
+    title: 'Interactive Mirror LED Photo Booth',
+    category: 'Photo Booth',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T18:00:00Z'
+  },
+
+  // Exhibition Booths & Trophies Category
+  {
+    id: 'exhib-1',
+    url: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
+    title: 'Custom Fabricated Expo Pavilion',
+    category: 'Exhibition Booths & Trophies',
+    albumId: 'expo-2025',
+    createdAt: '2025-11-08T11:15:00Z'
+  },
+
+  // Gift items Category
+  {
+    id: 'gift-1',
+    url: 'https://images.unsplash.com/photo-1481134635602-5e93438590a3?auto=format&fit=crop&w=800&q=80',
+    title: 'VIP Personalized Gifting Kits',
+    category: 'Gift items',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T17:30:00Z'
+  },
+
+  // Certificates Category
+  {
+    id: 'cert-1',
+    url: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?auto=format&fit=crop&w=800&q=80',
+    title: 'Hot Foil Embossed Appreciation Awards',
+    category: 'Certificates',
+    albumId: 'launch-sabic',
+    createdAt: '2026-01-20T14:00:00Z'
+  },
+
+  // Cubes & Lama Stand Category
+  {
+    id: 'cube-1',
+    url: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=800&q=80',
+    title: 'Glossy Modular Display Pedestals',
+    category: 'Cubes & Lama Stand',
+    albumId: 'expo-2025',
+    createdAt: '2025-11-08T13:40:00Z'
+  },
+
+  // Backdrops Category
+  {
+    id: 'back-1',
+    url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+    title: 'Telescopic Media Press Board Wall',
+    category: 'Backdrops',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T11:30:00Z'
+  },
+
+  // Games and activities Category
+  {
+    id: 'game-1',
+    url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
+    title: 'Interactive Virtual Reality Simulator Track',
+    category: 'Games and activities',
+    albumId: 'edu-zone-kids',
+    createdAt: '2025-08-22T10:30:00Z'
+  },
+
+  // Kids corner Category
+  {
+    id: 'kids-1',
+    url: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80',
+    title: 'Rainbow Blocks Creative Play Structure',
+    category: 'Kids corner',
+    albumId: 'edu-zone-kids',
+    createdAt: '2025-08-22T11:00:00Z'
+  },
+
+  // Furniture Rental Category
+  {
+    id: 'furniture-1',
+    url: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
+    title: 'Sleek Nordic Leather Lounger Suites',
+    category: 'Furniture Rental',
+    albumId: 'giga-tent',
+    createdAt: '2026-02-14T14:45:00Z'
+  },
+
+  // Tent Rental Category
+  {
+    id: 'tent-1',
+    url: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80',
+    title: 'Majestic White Double-Decker Glass Tent',
+    category: 'Tent Rental',
+    albumId: 'giga-tent',
+    createdAt: '2026-02-14T11:15:00Z'
+  },
+
+  // Catering services Category
+  {
+    id: 'cater-1',
+    url: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80',
+    title: 'Exotic Five-Star Banquet Presentation',
+    category: 'Catering services',
+    albumId: 'giga-tent',
+    createdAt: '2026-02-14T18:30:00Z'
+  },
+
+  // Technology Rental Category
+  {
+    id: 'tech-1',
+    url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
+    title: 'Panoramic High Refresh Curve LED Walls',
+    category: 'Technology Rental',
+    albumId: 'expo-2025',
+    createdAt: '2025-11-08T15:00:00Z'
+  },
+
+  // Branding and Printing Category
+  {
+    id: 'brand-1',
+    url: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=800&q=80',
+    title: 'Full-Span Seamless Wall Wrap Prints',
+    category: 'Branding and Printing',
+    albumId: 'launch-sabic',
+    createdAt: '2026-01-20T10:30:00Z'
+  },
+
+  // Vehicle Branding Category
+  {
+    id: 'vehicle-1',
+    url: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=800&q=80',
+    title: 'Metallic Gloss Vinyl Vehicle Graphics Wrap',
+    category: 'Vehicle Branding',
+    albumId: 'launch-sabic',
+    createdAt: '2026-01-20T16:00:00Z'
+  },
+
+  // Design services Category
+  {
+    id: 'design-1',
+    url: 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=800&q=80',
+    title: '3D Spatial Event Rendering Preview',
+    category: 'Design services',
+    albumId: 'gala-2026',
+    createdAt: '2026-03-15T10:00:00Z'
+  }
+];

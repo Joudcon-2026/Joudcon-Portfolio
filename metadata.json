@@ -1,0 +1,6 @@
+{
+  "name": "Joudcon Event Portfolio",
+  "description": "A highly polished, interactive portfolio application for Joudcon Events featuring categorized albums, high-resolution media viewer, and a secure administration dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
