@@ -97,8 +97,13 @@ export default function AdminPanel({
   if (!isOpen) return null;
 
   const handleAuth = () => {
-    setIsAuthenticated(true);
-    setAuthError(false);
+    if (password === 'joudcon2026') {
+      setIsAuthenticated(true);
+      setAuthError(false);
+    } else {
+      setAuthError(true);
+      setPassword('');
+    }
   };
 
   // Precision programmatical image canvas JOUDCON watermark burner
@@ -575,7 +580,6 @@ export default function AdminPanel({
               <div className="flex items-center gap-2">
                 <span className="text-[10px] tracking-[0.18em] font-extrabold text-[#E8921A] uppercase leading-none">Joudcon Events</span>
                 <span className="text-[8px] bg-[#E8921A]/10 border border-[#E8921A]/20 text-[#F5A623] font-mono tracking-wide px-1.5 py-0.5 rounded uppercase font-bold leading-none">Admin Portal</span>
-                <span className="text-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono tracking-wide px-1.5 py-0.5 rounded uppercase font-bold leading-none">User: firash-5002</span>
               </div>
               <h1 className="font-display tracking-widest text-xs font-black uppercase text-white mt-1">
                 Staff Administration Page

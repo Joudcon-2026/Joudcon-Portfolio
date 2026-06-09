@@ -296,8 +296,8 @@ export default function App() {
               className="group flex items-center gap-2 bg-[#122340] border border-white/5 hover:border-[#E8921A] text-white py-1.5 px-3.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-md"
               id="header-admin-btn"
             >
-              <Lock size={12} className="text-[#F5A623] group-hover:rotate-12 transition-transform" />
-              <span>Staff Login</span>
+              <Plus size={12} className="text-[#F5A623] group-hover:rotate-12 transition-transform" />
+              <span>Staff Portal</span>
             </button>
           </div>
         </div>
@@ -558,13 +558,13 @@ export default function App() {
             <span className="hidden sm:inline text-white/10">•</span>
             <span>Premium Event Logistics & Manufacture</span>
             <span className="hidden sm:inline text-white/10">•</span>
-            {/* Locked administrative secret doorway trigger */}
+            {/* Admin/Staff portal entry trigger */}
             <button
               onClick={openAdminPage}
               className="hover:text-[#F5A623] flex items-center gap-1 cursor-pointer transition-colors"
-              title="Secured Admin Portal Doorway"
+              title="Admin Staff Portal"
             >
-              <Lock size={10} className="text-[#F5A623]" /> Staff Portal
+              <Plus size={10} className="text-[#F5A623]" /> Staff Portal
             </button>
           </div>
 
