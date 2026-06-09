@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "Album": {
+      "title": "Album",
+      "description": "Represents an event folder or album grouping portfolio photos.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the album"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title name of the album"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the event setup"
+        },
+        "coverUrl": {
+          "type": "string",
+          "description": "URL link to the cover photo, can be a local upload URL or Unsplash URL"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Descriptive short badge tag for category grouping"
+        },
+        "date": {
+          "type": "string",
+          "description": "The date when the event occurred"
+        }
+      },
+      "required": ["id", "title", "coverUrl", "tag", "date"]
+    },
+    "PortfolioPhoto": {
+      "title": "PortfolioPhoto",
+      "description": "A specific high-resolution, watermark-scanned photograph showcasing event features.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the photo"
+        },
+        "url": {
+          "type": "string",
+          "description": "The public URL where the image file is hosted"
+        },
+        "title": {
+          "type": "string",
+          "description": "Friendly descriptive caption or title of the photo"
+        },
+        "category": {
+          "type": "string",
+          "description": "The category filter group of this asset"
+        },
+        "albumId": {
+          "type": "string",
+          "description": "Optional album identifier which this photo belongs to"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp representing the creation moment"
+        }
+      },
+      "required": ["id", "url", "title", "category", "createdAt"]
+    }
+  },
+  "firestore": {
+    "albums": {
+      "schema": "Album",
+      "description": "Contains metadata for all event specialty project folders."
+    },
+    "photos": {
+      "schema": "PortfolioPhoto",
+      "description": "Hosts the detailed catalog of individual event images and technical feature designs."
+    }
+  }
+}
